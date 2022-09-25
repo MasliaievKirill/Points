@@ -1,4 +1,4 @@
-package com.masliaiev.points.ui.theme
+package com.masliaiev.points.presentation.theme
 
 import androidx.compose.ui.graphics.Color
 

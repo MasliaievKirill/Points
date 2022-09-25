@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1036622603876",
+    "project_id": "com-masliaiev-points",
+    "storage_bucket": "com-masliaiev-points.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1036622603876:android:3cfda1f76eacbc4eb72171",
+        "android_client_info": {
+          "package_name": "com.masliaiev.points"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1036622603876-neg3s1hdfq9oc65dc362k9gr3vf6cl98.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAo0M-VXA1hqh8Xm8jpVnEFyr54Zy8Vmx8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1036622603876-neg3s1hdfq9oc65dc362k9gr3vf6cl98.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
