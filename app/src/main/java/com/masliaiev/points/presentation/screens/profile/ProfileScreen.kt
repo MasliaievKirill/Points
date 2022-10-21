@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.masliaiev.points.presentation.core.components.ContentField
+import com.masliaiev.points.presentation.core.components.PointsTopAppBar
 import com.masliaiev.points.presentation.core.components.SecondaryButton
 
 @Composable
@@ -32,20 +33,19 @@ fun ProfileScreen(
         modifier = Modifier.fillMaxSize(),
         backgroundColor = Color.White,
         topBar = {
-            TopAppBar(
-                title = { Text(text = "Profile") },
+            PointsTopAppBar(
+                title = "Profile",
                 navigationIcon = {
                     IconButton(onClick = { onNavigateBack() }) {
                         Icon(imageVector = Icons.Filled.ArrowBack, contentDescription = "back")
                     }
-                },
-                elevation = 8.dp
+                }
             )
         }
     ) { paddingValues ->
         Surface(modifier = Modifier.fillMaxSize()) {
             Column(
-                modifier = Modifier.padding(paddingValues),
+                modifier = Modifier.padding(paddingValues).navigationBarsPadding(),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
                 Column {

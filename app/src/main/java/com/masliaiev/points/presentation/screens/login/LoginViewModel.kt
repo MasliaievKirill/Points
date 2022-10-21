@@ -8,55 +8,60 @@ import androidx.lifecycle.viewModelScope
 import com.masliaiev.points.domain.usecases.LogInUseCase
 import com.masliaiev.points.helpers.Response
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class LoginViewModel @Inject constructor (
+class LoginViewModel @Inject constructor(
     private val logInUseCase: LogInUseCase
 ) : ViewModel() {
 
-    var signUpResponse by mutableStateOf<Response?>(null)
+    var navigateToMap = MutableSharedFlow<Unit>()
+        private set
 
-    var loginText by mutableStateOf("")
-    var loginTextError by mutableStateOf(false)
+    var showErrorToast = MutableSharedFlow<String>()
+        private set
 
-    var passwordText by mutableStateOf("")
-    var passwordTextError by mutableStateOf(false)
+    var screenState by mutableStateOf(LoginScreenState())
+        private set
 
     fun logIn(login: String, password: String) {
         viewModelScope.launch {
-            signUpResponse = logInUseCase.logIn(login, password)
+            when (logInUseCase.logIn(login, password)) {
+                is Response.Success -> {
+                    navigateToMap.emit(Unit)
+                }
+                is Response.Error -> {
+                    showErrorToast.emit("Some error occured")
+                }
+            }
         }
     }
 
-    fun clearResponse () {
-        signUpResponse = null
+    private fun setLoginTextError() {
+        screenState = screenState.copy(loginTextError = true)
     }
 
-    private fun setLoginTextError () {
-        loginTextError = true
+    private fun clearLoginTextError() {
+        screenState = screenState.copy(loginTextError = false)
     }
 
-    private fun clearLoginTextError () {
-        loginTextError = false
+    private fun setPasswordTextError() {
+        screenState = screenState.copy(passwordTextError = true)
     }
 
-    private fun setPasswordTextError () {
-        passwordTextError = true
-    }
-
-    private fun clearPasswordTextError () {
-        passwordTextError = false
+    private fun clearPasswordTextError() {
+        screenState = screenState.copy(passwordTextError = false)
     }
 
     fun updateLoginText(text: String) {
-        loginText = text
+        screenState = screenState.copy(loginText = text)
         if (text.isEmpty()) setLoginTextError() else clearLoginTextError()
     }
 
     fun updatePasswordText(text: String) {
-        passwordText = text
+        screenState = screenState.copy(passwordText = text)
         if (text.isEmpty()) setPasswordTextError() else clearPasswordTextError()
     }
 }

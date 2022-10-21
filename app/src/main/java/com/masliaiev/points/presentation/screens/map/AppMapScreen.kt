@@ -1,13 +1,10 @@
 package com.masliaiev.points.presentation.screens.map
 
 import android.Manifest
-import android.util.Log
+import android.annotation.SuppressLint
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.FloatingActionButtonDefaults
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
@@ -17,8 +14,8 @@ import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -30,7 +27,9 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
 import com.masliaiev.points.domain.entity.Point
 import com.masliaiev.points.presentation.core.components.CircleButton
+import kotlinx.coroutines.flow.MutableSharedFlow
 
+@SuppressLint("MissingPermission")
 @Composable
 fun AppMapScreen(
     viewModel: AppMapViewModel,
@@ -39,27 +38,34 @@ fun AppMapScreen(
     onNavigateToAddPoint: (userLogin: String, latitude: Double, longitude: Double) -> Unit,
 ) {
 
-    val canShowMap = viewModel.showMap
-    val currentCoordinates = viewModel.currentCoordinates
-    val userLogin = viewModel.userLogin
-    val pointsList = viewModel.pointsList.collectAsState(initial = listOf())
+    val screenState = viewModel.screenState
+
+    val showCurrentPosition = viewModel.showCurrentPosition
+    val context = LocalContext.current
+    val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
 
     RequestLocationPermissions { permissions ->
         viewModel.checkPermissions(permissions)
     }
 
-    Log.d("LOG_MAP", "RECOMPOSED")
+    fusedLocationClient.lastLocation
+        .addOnSuccessListener { location ->
+            viewModel.setUserCurrentCoordinates(LatLng(location.latitude, location.longitude))
+        }
 
     Scaffold {
-        if (canShowMap) {
-            Log.d("LOG_COMPOSE", "ES")
+        if (screenState.showMapIsPermitted) {
             ShowMap(
-                currentCoordinates = currentCoordinates,
-                pointsList = pointsList.value,
-                onAddPoint = {
-                    onNavigateToAddPoint(userLogin, it.latitude, it.longitude)
+                currentCoordinates = screenState.currentCoordinates,
+                pointsList = screenState.pointsList,
+                onAddPoint = { coordinates ->
+                    onNavigateToAddPoint(
+                        screenState.userLogin,
+                        coordinates.latitude,
+                        coordinates.longitude
+                    )
                 },
-                onLocationUpdate = { viewModel.setUserCurrentCoordinates(it) },
+                showCurrentPosition = showCurrentPosition
             )
         }
 
@@ -67,7 +73,8 @@ fun AppMapScreen(
             horizontalAlignment = Alignment.End,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(it),
+                .padding(it)
+                .systemBarsPadding(),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             Column {
@@ -81,7 +88,11 @@ fun AppMapScreen(
                     },
                     backgroundColor = MaterialTheme.colors.primaryVariant,
                     elevation = FloatingActionButtonDefaults.elevation(),
-                    onClick = { if (userLogin.isNotEmpty()) onNavigateToProfile(userLogin) }
+                    onClick = {
+                        if (screenState.userLogin.isNotEmpty()) onNavigateToProfile(
+                            screenState.userLogin
+                        )
+                    }
                 )
                 CircleButton(
                     modifier = Modifier.padding(12.dp),
@@ -106,12 +117,11 @@ fun AppMapScreen(
                 },
                 backgroundColor = MaterialTheme.colors.primaryVariant,
                 elevation = FloatingActionButtonDefaults.elevation(),
-                onClick = { }
+                onClick = {
+                    viewModel.showCurrentPosition()
+                }
             )
-
         }
-
-
     }
 }
 
@@ -119,37 +129,36 @@ fun AppMapScreen(
 fun ShowMap(
     pointsList: List<Point>,
     currentCoordinates: LatLng,
-    onLocationUpdate: (LatLng) -> Unit,
+    showCurrentPosition: MutableSharedFlow<Unit>,
     onAddPoint: (LatLng) -> Unit
 ) {
-
-    val context = LocalContext.current
-    val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
 
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(currentCoordinates, 15f)
     }
-    fusedLocationClient.lastLocation
-        .addOnSuccessListener { location ->
-            onLocationUpdate(LatLng(location.latitude, location.longitude))
+
+    LaunchedEffect(key1 = true) {
+        showCurrentPosition.collect {
             cameraPositionState.move(
                 CameraUpdateFactory.newLatLng(
                     LatLng(
-                        location.latitude,
-                        location.longitude
+                        currentCoordinates.latitude,
+                        currentCoordinates.longitude
                     )
                 )
             )
         }
+    }
+
     GoogleMap(
-        modifier = Modifier
-            .fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         cameraPositionState = cameraPositionState,
         properties = MapProperties(isMyLocationEnabled = true),
         uiSettings = MapUiSettings(myLocationButtonEnabled = false, zoomControlsEnabled = false),
         onMapLongClick = {
             onAddPoint(it)
-        }
+        },
+        contentPadding = WindowInsets.navigationBars.asPaddingValues()
     ) {
         for (point in pointsList) {
             Marker(

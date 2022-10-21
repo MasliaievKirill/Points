@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.List
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -90,9 +91,21 @@ fun DefaultPreview() {
                 text = "Main button",
                 isEnabled = true,
                 modifier = Modifier.padding(12.dp)
-            ) {
-
-            }
+            ) {}
+            SecondaryButton(
+                text = "Secondary button",
+                isEnabled = true,
+                modifier = Modifier.padding(12.dp)
+            ) {}
+            CircleButton(
+                icon = {
+                    Icon(
+                        imageVector = Icons.Filled.Add,
+                        contentDescription = "Profile"
+                    )
+                },
+                modifier = Modifier.padding(12.dp)
+            ) {}
         }
     }
 }

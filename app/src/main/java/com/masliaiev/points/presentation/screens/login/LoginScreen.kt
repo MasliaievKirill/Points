@@ -6,7 +6,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -15,7 +16,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.masliaiev.points.R
-import com.masliaiev.points.helpers.Response
 import com.masliaiev.points.presentation.core.components.AppEdittext
 import com.masliaiev.points.presentation.core.components.PrimaryButton
 import com.masliaiev.points.presentation.core.components.SecondaryButton
@@ -27,35 +27,31 @@ fun LoginScreen(
     onNavigateToSignUp: () -> Unit
 ) {
     val context = LocalContext.current
+    val screenState = viewModel.screenState
 
-    val loginText = viewModel.loginText
-    val loginTextError = viewModel.loginTextError
-
-    val passwordText = viewModel.passwordText
-    val passwordTextError = viewModel.passwordTextError
-
-    val signUpResponse = viewModel.signUpResponse
-
-    Log.d("LOG_LOGIN", viewModel.toString())
-
-    signUpResponse?.let {
-        when (it) {
-            is Response.Success -> {
+    LaunchedEffect(screenState.navigateToMapKey) {
+        Log.d("LOG_LOGIN", "LaunchedEffect")
+        with(viewModel) {
+            navigateToMap.collect {
                 onNavigateToAppMap()
-                viewModel.clearResponse()
-                Log.d("LOG_LOGIN", "RECOMPOSED")
-
-            }
-            is Response.Error -> {
-                Toast.makeText(context, it.massage, Toast.LENGTH_SHORT).show()
-                viewModel.clearResponse()
             }
         }
     }
 
+    LaunchedEffect(screenState.showErrorKey) {
+        Log.d("LOG_LOGIN", "LaunchedEffect")
+        with(viewModel) {
+            showErrorToast.collect {
+                Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    Log.d("LOG_LOGIN", viewModel.toString())
 
     Surface(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize(),
         color = Color.White
     ) {
         Column(
@@ -65,7 +61,8 @@ fun LoginScreen(
             Row(
                 modifier = Modifier
                     .fillMaxHeight(0.35f)
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .statusBarsPadding(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
@@ -89,22 +86,25 @@ fun LoginScreen(
                     AppEdittext(
                         modifier = Modifier.padding(12.dp),
                         hint = "Login",
-                        isError = loginTextError
+                        isError = screenState.loginTextError,
+                        initialText = screenState.loginText
                     ) {
                         viewModel.updateLoginText(it)
                     }
                     AppEdittext(
                         modifier = Modifier.padding(12.dp),
                         hint = "Password",
-                        isError = passwordTextError,
-                        isPasswordField = true
+                        isError = screenState.passwordTextError,
+                        isPasswordField = true,
+                        initialText = screenState.passwordText
                     ) {
                         viewModel.updatePasswordText(it)
                     }
                 }
                 Column(
                     modifier = Modifier
-                        .fillMaxSize(),
+                        .fillMaxSize()
+                        .navigationBarsPadding(),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Bottom
                 ) {
@@ -113,10 +113,10 @@ fun LoginScreen(
                         isEnabled = true,
                         modifier = Modifier.padding(12.dp)
                     ) {
-                        if (loginText.isNotEmpty() && passwordText.isNotEmpty()) {
+                        if (screenState.loginText.isNotEmpty() && screenState.passwordText.isNotEmpty()) {
                             viewModel.logIn(
-                                    login = loginText,
-                                    password = passwordText
+                                login = screenState.loginText,
+                                password = screenState.passwordText
                             )
                         }
                     }

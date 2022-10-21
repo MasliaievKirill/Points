@@ -1,9 +1,6 @@
 package com.masliaiev.points.presentation.screens.points_list
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
@@ -16,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.items
 import com.masliaiev.points.presentation.core.components.ContentField
+import com.masliaiev.points.presentation.core.components.PointsTopAppBar
 
 @Composable
 fun PointsListScreen(
@@ -30,8 +28,8 @@ fun PointsListScreen(
         modifier = Modifier.fillMaxSize(),
         backgroundColor = Color.White,
         topBar = {
-            TopAppBar(
-                title = { Text(text = "Saved points") },
+            PointsTopAppBar(
+                title = "Saved points",
                 navigationIcon = {
                     IconButton(onClick = { onNavigateBack() }) {
                         Icon(imageVector = Icons.Filled.ArrowBack, contentDescription = "back")
@@ -46,7 +44,9 @@ fun PointsListScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            LazyColumn {
+            LazyColumn(
+                contentPadding = WindowInsets.navigationBars.asPaddingValues()
+            ) {
                 items(lazyPagingItems) {
                     it?.let {
                         PointCard(

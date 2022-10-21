@@ -8,7 +8,9 @@ import androidx.lifecycle.viewModelScope
 import com.masliaiev.points.domain.entity.User
 import com.masliaiev.points.domain.usecases.SignUpUseCase
 import com.masliaiev.points.helpers.Response
+import com.masliaiev.points.presentation.screens.login.LoginScreenState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -17,63 +19,64 @@ class SignUpViewModel @Inject constructor(
     private val signUpUseCase: SignUpUseCase
 ) : ViewModel() {
 
-    var signUpResponse by mutableStateOf<Response?>(null)
+    var navigateToMap = MutableSharedFlow<Unit>()
+        private set
 
-    var emailText by mutableStateOf("")
-    var emailTextError by mutableStateOf(false)
+    var showErrorToast = MutableSharedFlow<String>()
+        private set
 
-    var loginText by mutableStateOf("")
-    var loginTextError by mutableStateOf(false)
-
-    var passwordText by mutableStateOf("")
-    var passwordTextError by mutableStateOf(false)
+    var screenState by mutableStateOf(SignUpScreenState())
+        private set
 
     fun signUp(user: User) {
         viewModelScope.launch {
-            signUpResponse = signUpUseCase.signUp(user)
+            when (signUpUseCase.signUp(user)) {
+                is Response.Success -> {
+                    navigateToMap.emit(Unit)
+                }
+                is Response.Error -> {
+                    showErrorToast.emit("Some error occured")
+                }
+            }
         }
     }
 
-    fun clearResponse() {
-        signUpResponse = null
-    }
-
     private fun setEmailTextError() {
-        emailTextError = true
+        screenState = screenState.copy(emailTextError = true)
     }
 
     private fun clearEmailTextError() {
-        emailTextError = false
+        screenState = screenState.copy(emailTextError = false)
     }
 
     private fun setLoginTextError() {
-        loginTextError = true
+        screenState = screenState.copy(loginTextError = true)
     }
 
     private fun clearLoginTextError() {
-        loginTextError = false
+        screenState = screenState.copy(loginTextError = false)
     }
 
     private fun setPasswordTextError() {
-        passwordTextError = true
+        screenState = screenState.copy(passwordTextError = true)
     }
 
     private fun clearPasswordTextError() {
-        passwordTextError = false
+        screenState = screenState.copy(passwordTextError = false)
     }
 
     fun updateEmailText(text: String) {
-        emailText = text
+        screenState = screenState.copy(emailText = text)
         if (text.isEmpty()) setEmailTextError() else clearEmailTextError()
     }
 
     fun updateLoginText(text: String) {
-        loginText = text
+        screenState = screenState.copy(loginText = text)
         if (text.isEmpty()) setLoginTextError() else clearLoginTextError()
     }
 
     fun updatePasswordText(text: String) {
-        passwordText = text
+        screenState = screenState.copy(passwordText = text)
         if (text.isEmpty()) setPasswordTextError() else clearPasswordTextError()
     }
 }

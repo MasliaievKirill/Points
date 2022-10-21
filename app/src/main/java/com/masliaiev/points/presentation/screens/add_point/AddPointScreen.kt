@@ -2,6 +2,7 @@ package com.masliaiev.points.presentation.screens.add_point
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -13,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import com.google.android.gms.maps.model.LatLng
 import com.masliaiev.points.domain.entity.Point
 import com.masliaiev.points.presentation.core.components.AppEdittext
+import com.masliaiev.points.presentation.core.components.PointsTopAppBar
 import com.masliaiev.points.presentation.core.components.PrimaryButton
 import com.masliaiev.points.presentation.screens.profile.ProfileScreenViewModel
 
@@ -32,8 +34,8 @@ fun AddPointScreen(
         modifier = Modifier.fillMaxSize(),
         backgroundColor = Color.White,
         topBar = {
-            TopAppBar(
-                title = { Text(text = "Add point") },
+            PointsTopAppBar(
+                title = "Add point",
                 navigationIcon = {
                     IconButton(onClick = { onNavigateBack() }) {
                         Icon(imageVector = Icons.Filled.ArrowBack, contentDescription = "back")
@@ -43,7 +45,7 @@ fun AddPointScreen(
             )
         }
     ) {paddingValues ->
-        Column (modifier = Modifier.padding(paddingValues)) {
+        Column (modifier = Modifier.padding(paddingValues).navigationBarsPadding()) {
             AppEdittext(
                 modifier = Modifier.padding(12.dp),
                 hint = "Point name",

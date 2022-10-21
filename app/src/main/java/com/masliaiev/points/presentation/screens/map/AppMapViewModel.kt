@@ -1,32 +1,29 @@
 package com.masliaiev.points.presentation.screens.map
 
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.model.LatLng
-import com.masliaiev.points.domain.entity.Point
 import com.masliaiev.points.domain.usecases.GetPointsListUseCase
 import com.masliaiev.points.domain.usecases.GetUserLoginUseCase
-import com.masliaiev.points.domain.usecases.SavePointUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class AppMapViewModel @Inject constructor(
     private val getPointsUseCase: GetPointsListUseCase,
-    private val getUserLoginUseCase: GetUserLoginUseCase,
-    private val savePointUseCase: SavePointUseCase
+    private val getUserLoginUseCase: GetUserLoginUseCase
 ) : ViewModel() {
 
-    var showMap by mutableStateOf(false)
-    var userLogin by mutableStateOf("")
-    var currentCoordinates by mutableStateOf(LatLng(0.0, 0.0))
-    var pointsList by mutableStateOf(flowOf<List<Point>>())
+    var showCurrentPosition = MutableSharedFlow<Unit>()
+        private set
+
+    var screenState by mutableStateOf(AppMapScreenState())
+        private set
 
     init {
         getUserLogin()
@@ -35,16 +32,21 @@ class AppMapViewModel @Inject constructor(
 
     private fun getUserLogin() {
         viewModelScope.launch {
-            userLogin = getUserLoginUseCase.getUserLogin()
+            val userLogin = getUserLoginUseCase.getUserLogin()
+            screenState = screenState.copy(userLogin = userLogin)
         }
     }
 
     private fun getPointsList() {
-        pointsList = getPointsUseCase.getPointsList()
+        viewModelScope.launch {
+            getPointsUseCase.getPointsList().collect {
+                screenState = screenState.copy(pointsList = it)
+            }
+        }
     }
 
     fun setUserCurrentCoordinates(latLng: LatLng) {
-        currentCoordinates = latLng
+        screenState = screenState.copy(currentCoordinates = latLng)
     }
 
     fun checkPermissions(permissions: Map<String, Boolean>) {
@@ -53,13 +55,13 @@ class AppMapViewModel @Inject constructor(
             isGranted = it.value
         }
         if (isGranted) {
-            showMap = true
+            screenState = screenState.copy(showMapIsPermitted = true)
         }
     }
 
-    fun savePoint(point: Point) {
+    fun showCurrentPosition() {
         viewModelScope.launch {
-            savePointUseCase.savePoint(point)
+            showCurrentPosition.emit(Unit)
         }
     }
 
