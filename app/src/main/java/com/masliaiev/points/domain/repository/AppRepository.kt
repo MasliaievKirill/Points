@@ -1,6 +1,7 @@
 package com.masliaiev.points.domain.repository
 
 import androidx.paging.PagingData
+import com.google.android.gms.maps.model.LatLng
 import com.masliaiev.points.domain.entity.Point
 import com.masliaiev.points.domain.entity.User
 import com.masliaiev.points.helpers.Response
@@ -27,4 +28,6 @@ interface AppRepository {
     suspend fun savePoint(point: Point)
 
     fun deletePoint(pointId: Int): Response
+
+    suspend fun getRoute(startCoordinates: LatLng, endCoordinates: LatLng): List<LatLng>?
 }

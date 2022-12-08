@@ -5,9 +5,13 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.map
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.PolyUtil
+import com.masliaiev.points.BuildConfig
 import com.masliaiev.points.data.database.AppDao
 import com.masliaiev.points.data.database.models.UserDbModel
 import com.masliaiev.points.data.mapper.AppMapper
+import com.masliaiev.points.data.network.ApiService
 import com.masliaiev.points.domain.entity.Point
 import com.masliaiev.points.domain.entity.User
 import com.masliaiev.points.domain.repository.AppRepository
@@ -21,6 +25,7 @@ import javax.inject.Inject
 
 class AppRepositoryImpl @Inject constructor(
     private val appDao: AppDao,
+    private val apiService: ApiService,
     private val appMapper: AppMapper,
     private val sharedPreferences: SharedPreferences
 ) : AppRepository {
@@ -107,6 +112,15 @@ class AppRepositoryImpl @Inject constructor(
 
     override fun deletePoint(pointId: Int): Response {
         TODO("Not yet implemented")
+    }
+
+    override suspend fun getRoute(startCoordinates: LatLng, endCoordinates: LatLng): List<LatLng>? {
+        val points = apiService.getDirections(
+            "${startCoordinates.latitude},${startCoordinates.longitude}",
+            "${endCoordinates.latitude},${endCoordinates.longitude}",
+            BuildConfig.MAPS_API_KEY
+        ).routes.firstOrNull()?.overviewPolyline?.points
+        return points?.let { PolyUtil.decode(points) }
     }
 
     companion object {

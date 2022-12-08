@@ -5,6 +5,8 @@ import android.content.Context
 import android.content.SharedPreferences
 import com.masliaiev.points.data.database.AppDao
 import com.masliaiev.points.data.database.AppDatabase
+import com.masliaiev.points.data.network.ApiFactory
+import com.masliaiev.points.data.network.ApiService
 import com.masliaiev.points.data.repository.AppRepositoryImpl
 import com.masliaiev.points.domain.repository.AppRepository
 import com.masliaiev.points.helpers.AppConstants
@@ -29,6 +31,12 @@ interface DataModule {
         @Singleton
         fun provideAppDao(application: Application): AppDao {
             return AppDatabase.getInstance(application).appDao()
+        }
+
+        @Provides
+        @Singleton
+        fun provideApiService(): ApiService {
+            return ApiFactory.apiService
         }
 
         @Provides

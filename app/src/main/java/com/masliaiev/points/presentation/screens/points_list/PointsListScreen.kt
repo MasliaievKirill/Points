@@ -9,11 +9,14 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.items
 import com.masliaiev.points.presentation.core.components.ContentField
 import com.masliaiev.points.presentation.core.components.PointsTopAppBar
+import com.masliaiev.points.presentation.core.components.PrimaryButton
+import com.masliaiev.points.presentation.screens.navigation.MapNavigationActivity
 
 @Composable
 fun PointsListScreen(
@@ -74,6 +77,8 @@ fun PointCard(
         elevation = 4.dp,
         shape = RoundedCornerShape(12.dp)
     ) {
+
+        val context = LocalContext.current
         Column(modifier = Modifier.fillMaxWidth()) {
             ContentField(
                 modifier = Modifier.padding(12.dp),
@@ -90,6 +95,10 @@ fun PointCard(
                 description = "Longitude",
                 text = pointLongitude.toString()
             )
+            PrimaryButton(text = "Navigate", isEnabled = true) {
+                val intent = MapNavigationActivity.newIntent(context, pointLongitude, pointLatitude)
+                context.startActivity(intent)
+            }
         }
     }
 
