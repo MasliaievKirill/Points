@@ -2,6 +2,9 @@ package com.masliaiev.points.presentation.screens.map
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.pm.PackageManager
+import android.os.Build
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
@@ -20,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
@@ -47,6 +51,8 @@ fun AppMapScreen(
     RequestLocationPermissions { permissions ->
         viewModel.checkPermissions(permissions)
     }
+
+    RequestNotificationsPermissions()
 
     fusedLocationClient.lastLocation
         .addOnSuccessListener { location ->
@@ -187,6 +193,30 @@ fun RequestLocationPermissions(
                 Manifest.permission.ACCESS_FINE_LOCATION
             )
         )
+    }
+}
+
+@Composable
+fun RequestNotificationsPermissions() {
+    val requestPermission = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        Log.d("FCM", "API 33+ FCM permission granted -> $isGranted")
+    }
+
+    val context = LocalContext.current
+
+    SideEffect {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) !=
+                PackageManager.PERMISSION_GRANTED
+            ) {
+                requestPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
     }
 }
 
