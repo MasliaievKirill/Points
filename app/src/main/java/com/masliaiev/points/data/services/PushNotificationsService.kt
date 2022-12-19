@@ -45,22 +45,65 @@ class PushNotificationsService : FirebaseMessagingService() {
             NotificationManager.IMPORTANCE_HIGH
         )
         notificationManager.createNotificationChannel(notificationChannel)
+
         val notification = NotificationCompat.Builder(this, channelId)
             .setContentTitle(title)
             .setContentText(text)
             .setSmallIcon(R.drawable.ic_map_pin)
+            .setGroup(
+                when (channelId) {
+                    PRIVATE_CHANNEL_ID -> GROUP_KEY_PRIVATE
+                    else -> GROUP_KEY_GENERAL
+                }
+            )
+            .build()
+
+        val summaryNotification = NotificationCompat.Builder(this, channelId)
+            .setContentTitle(title)
+            .setContentText(text)
+            .setSmallIcon(R.drawable.ic_map_pin)
+            .setStyle(
+                NotificationCompat.InboxStyle()
+                    .setSummaryText(
+                        when (channelId) {
+                            PRIVATE_CHANNEL_ID -> "Private"
+                            else -> "General"
+                        }
+                    )
+            )
+            .setGroup(
+                when (channelId) {
+                    PRIVATE_CHANNEL_ID -> GROUP_KEY_PRIVATE
+                    else -> GROUP_KEY_GENERAL
+                }
+            )
+            .setGroupSummary(true)
             .build()
         notificationManager.notify(messageId?.hashCode() ?: DEFAULT_MESSAGE_ID, notification)
+        notificationManager.notify(
+            when (channelId) {
+                PRIVATE_CHANNEL_ID -> PRIVATE_SUMMARY_ID
+                else -> GENERAL_SUMMARY_ID
+            },
+            summaryNotification
+        )
     }
 
     companion object {
         private const val FIREBASE_EVENT_TAG = "firebase_event"
         private const val DEFAULT_MESSAGE_ID = 1
+
         private const val KEY_CHANNEL_ID = "channelId"
+
         private const val GENERAL_CHANNEL_ID = "1"
         private const val GENERAL_CHANNEL_NAME = "General notifications"
+        private const val GROUP_KEY_GENERAL = "com.masliaiev.points.GENERAL"
+        private const val GENERAL_SUMMARY_ID = 1
+
         private const val PRIVATE_CHANNEL_ID = "2"
         private const val PRIVATE_CHANNEL_NAME = "Private notifications"
+        private const val GROUP_KEY_PRIVATE = "com.masliaiev.points.PRIVATE"
+        private const val PRIVATE_SUMMARY_ID = 2
     }
 
 }
